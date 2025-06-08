@@ -1,6 +1,6 @@
 import selectWithBanner from './index.js';
 
-await selectWithBanner({
+const choice = await selectWithBanner<string>({
   message: 'Choose your weapon!',
   choices: [
     'Battle Axe',
@@ -20,3 +20,5 @@ await selectWithBanner({
   loop: false,
   banner: choice => (choice.value === 'Pencil' ? 'Hello John Wick!' : 'Nice choice'),
 });
+
+console.log('You chose:', choice);
