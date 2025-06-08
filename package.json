@@ -3,24 +3,41 @@
   "module": "src/index.ts",
   "type": "module",
   "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@inquirer/testing": "^2.1.47",
     "@types/bun": "latest",
-    "biome": "^0.3.3",
+    "@types/chai": "^5.2.2",
+    "@types/chai-as-promised": "^8.0.2",
+    "@types/mocha": "^10.0.10",
+    "@types/sinon": "^17.0.4",
+    "chai": "^5.2.0",
+    "chai-as-promised": "^8.0.1",
     "husky": "^9.1.7",
-    "lint-staged": "^16.1.0"
+    "lint-staged": "^16.1.0",
+    "mocha": "^11.5.0",
+    "sinon": "^20.0.0",
+    "tsx": "^4.19.4"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
   "scripts": {
     "prepare": "husky",
-	  "format": "biome format --write",
-	  "lint": "biome lint --write",
-	  "check": "tsc --noEmit --skipLibCheck"
+    "format": "biome format --write",
+    "lint": "biome lint --write",
+    "check": "tsc --noEmit --skipLibCheck",
+    "test": "npx mocha test"
   },
   "lint-staged": {
-	  "**/*.{ts,tsx}": [
+    "**/*.{ts,tsx}": [
       "npm run format --",
-		  "npm run lint --"
-	  ]
+      "npm run lint --"
+    ]
+  },
+  "dependencies": {
+    "@inquirer/core": "^10.1.13",
+    "@inquirer/figures": "^1.0.12",
+    "ansi-escapes": "^7.0.0",
+    "yoctocolors": "^2.1.1"
   }
 }
