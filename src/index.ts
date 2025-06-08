@@ -77,7 +77,7 @@ export type SelectWithBannerConfig<Value = string> = {
    * @param index The index of the currently selected choice
    * @returns A string to display as banner, or null to keep the current banner
    */
-  banner?: (choice: NormalizedChoice<Value>, index: number) => string | null | Promise<string | null>;
+  banner?: (choice: NormalizedChoice<Value>, index: number) => string | null;
 };
 
 function isSelectable<Value>(item: NormalizedChoice<Value> | Separator): item is NormalizedChoice<Value> {
@@ -122,8 +122,7 @@ export default createPrompt(<Value>(config: SelectWithBannerConfig<Value>, done:
   const [status, setStatus] = useState<Status>('idle');
   const prefix = usePrefix({ status, theme });
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
-  const [bannerContent, setBannerContent] = useState<string>('');
-  const [isUpdatingBanner, setIsUpdatingBanner] = useState(false);
+  const previousBanner = useRef<string>('');
 
   const items = useMemo(() => normalizeChoices(config.choices), [config.choices]);
 
@@ -147,25 +146,6 @@ export default createPrompt(<Value>(config: SelectWithBannerConfig<Value>, done:
 
   // Safe to assume the cursor position always point to a Choice.
   const selectedChoice = items[active] as NormalizedChoice<Value>;
-
-  // Update banner when active choice changes
-  useEffect(() => {
-    if (!banner || !isSelectable(selectedChoice)) return;
-
-    const updateBanner = async () => {
-      setIsUpdatingBanner(true);
-      try {
-        const result = await banner(selectedChoice, active);
-        if (result !== null) {
-          setBannerContent(result);
-        }
-      } finally {
-        setIsUpdatingBanner(false);
-      }
-    };
-
-    updateBanner();
-  }, [active, banner, selectedChoice]);
 
   useKeypress((key, rl) => {
     clearTimeout(searchTimeoutRef.current);
@@ -239,9 +219,7 @@ export default createPrompt(<Value>(config: SelectWithBannerConfig<Value>, done:
     items,
     active,
     renderItem({ item, isActive, index }) {
-      if (Separator.isSeparator(item)) {
-        return ` ${item.separator}`;
-      }
+      if (Separator.isSeparator(item)) return ` ${item.separator}`;
 
       const indexLabel = theme.indexMode === 'number' ? `${index + 1}. ` : '';
       if (item.disabled) {
@@ -257,15 +235,17 @@ export default createPrompt(<Value>(config: SelectWithBannerConfig<Value>, done:
     loop,
   });
 
+  const bannerValue = banner ? banner(selectedChoice, active) : '';
+  const bannerContent = bannerValue === null ? previousBanner.current : bannerValue;
+  previousBanner.current = bannerContent;
+
   if (status === 'done') {
-    return `${bannerContent ? `${bannerContent}\n` : ''}${prefix} ${message} ${theme.style.answer(selectedChoice.short)}`;
+    return `${prefix} ${message} ${theme.style.answer(selectedChoice.short)}`;
   }
 
   const choiceDescription = selectedChoice.description ? `\n${theme.style.description(selectedChoice.description)}` : '';
 
-  const loadingIndicator = isUpdatingBanner ? ' ⟳' : '';
-
-  return `${bannerContent ? `${bannerContent}${loadingIndicator}\n` : ''}${[prefix, message, helpTipTop].filter(Boolean).join(' ')}\n${page}${helpTipBottom}${choiceDescription}${ansiEscapes.cursorHide}`;
+  return `${bannerContent ? `${bannerContent}\n` : ''}${[prefix, message, helpTipTop].filter(Boolean).join(' ')}\n${page}${helpTipBottom}${choiceDescription}${ansiEscapes.cursorHide}`;
 });
 
 export { Separator } from '@inquirer/core';

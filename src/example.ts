@@ -17,7 +17,6 @@ const choice = await selectWithBanner<string>({
     'Crossbow',
     'Staff',
   ],
-  loop: false,
   banner: choice => (choice.value === 'Pencil' ? 'Hello John Wick!' : 'Nice choice'),
 });
 
