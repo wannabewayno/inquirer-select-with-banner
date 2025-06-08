@@ -3,9 +3,24 @@
   "module": "src/index.ts",
   "type": "module",
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "biome": "^0.3.3",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.0"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
+  },
+  "scripts": {
+    "prepare": "husky",
+	  "format": "biome format --write",
+	  "lint": "biome lint --write",
+	  "check": "tsc --noEmit --skipLibCheck"
+  },
+  "lint-staged": {
+	  "**/*.{ts,tsx}": [
+      "npm run format --",
+		  "npm run lint --"
+	  ]
   }
 }
