@@ -17,7 +17,27 @@ const choice = await selectWithBanner<string>({
     'Crossbow',
     'Staff',
   ],
-  banner: choice => (choice.value === 'Pencil' ? 'Hello John Wick!' : 'Nice choice'),
+  banner: choice => {
+    switch (choice.value) {
+      case 'Battle Axe':
+      case 'Mace':
+      case 'Flail':
+        return 'Heavy';
+      case 'Staff':
+        return 'You shall not pass!';
+      case 'Sword':
+      case 'Dagger':
+      case 'Scimitar':
+        return 'Pointy';
+      case 'Bow and Arrow':
+      case 'Crossbow':
+        return 'Ahh, from afar!';
+      case 'Pencil':
+        return 'Hello John Wick';
+      default:
+        return 'Nice Choice';
+    }
+  },
 });
 
 console.log('You chose:', choice);
