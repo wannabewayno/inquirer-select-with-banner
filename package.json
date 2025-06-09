@@ -1,6 +1,10 @@
 {
   "name": "inquirer-select-with-banner",
-  "module": "src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "type": "module",
   "author": {
     "name": "Wayne Griffiths",
@@ -43,7 +47,8 @@
     "format": "biome format --write",
     "lint": "biome lint --write",
     "check": "tsc --noEmit --skipLibCheck",
-    "test": "npx mocha test"
+    "test": "npx mocha test",
+    "build": "tsc"
   },
   "lint-staged": {
     "**/*.{ts,tsx}": [

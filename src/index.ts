@@ -160,7 +160,8 @@ export default createPrompt(<Value>(config: SelectWithBannerConfig<Value>, done:
         let next = active;
         do {
           next = (next + offset + items.length) % items.length;
-        } while (!isSelectable(items[next]));
+          // biome-ignore lint/style/noNonNullAssertion: it's safe to assume the cursor position always points to a choice.
+        } while (!isSelectable(items[next]!));
         setActive(next);
       }
     } else if (isNumberKey(key) && !Number.isNaN(Number(rl.line))) {
