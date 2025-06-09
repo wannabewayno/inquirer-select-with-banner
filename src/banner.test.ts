@@ -1,7 +1,7 @@
 import { render } from '@inquirer/testing';
-import selectWithBanner, { type SelectWithBannerConfig } from './index.ts';
+import selectWithBanner, { type SelectWithBannerConfig } from './select.js';
 import { expect } from 'chai';
-import { normalizeOutput } from './test-utils.ts';
+import { normalizeOutput } from './test-utils.js';
 
 const numberedChoices = [
   { value: '1' },

@@ -1,10 +1,10 @@
 import { render } from '@inquirer/testing';
 import { ValidationError } from '@inquirer/core';
-import selectWithBanner from './index.ts';
+import selectWithBanner from './select.js';
 import { Separator } from '@inquirer/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { normalizeOutput } from './test-utils.ts';
+import { normalizeOutput } from './test-utils.js';
 
 const numberedChoices = [
   { value: 1 },
