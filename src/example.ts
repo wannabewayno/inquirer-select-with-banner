@@ -1,6 +1,6 @@
-import selectWithBanner from './select.js';
+import { select } from './index.js';
 
-const choice = await selectWithBanner<string>({
+const choice = await select<string>({
   message: 'Choose your weapon!',
   choices: [
     'Battle Axe',

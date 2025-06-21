@@ -37,6 +37,47 @@ const answer = await select({
   ],
   banner: (choice) => `Selected: ${choice.name}` // <- Controls the banner. return `string` to display, `undefined` or '' to clear, `null` to preserve the previous banner 
 });
+import { select } from './index.js';
+
+const choice = await select<string>({
+  message: 'Choose your weapon!',
+  choices: [
+    'Battle Axe',
+    'Sword',
+    'Bow and Arrow',
+    'Spear',
+    'Shield',
+    'Hammer',
+    'Mace',
+    'Dagger',
+    'Pencil',
+    'Flail',
+    'Scimitar',
+    'Crossbow',
+    'Staff',
+  ],
+  // Thiscontrols the banner.
+  // return `string` to display a banner
+  // `undefined` or '' to clear the banner
+  // `null` to preserve the previous banner 
+  banner: choice => {
+    switch (choice.value) {
+      case 'Battle Axe':
+      case 'Mace':
+      case 'Flail': return 'Heavy';
+      case 'Staff': return 'You shall not pass!';
+      case 'Sword':
+      case 'Dagger':
+      case 'Scimitar': return 'Pointy';
+      case 'Bow and Arrow':
+      case 'Crossbow': return 'Ahh, from afar!';
+      case 'Pencil': return 'Hello John Wick';
+      default: return 'Nice Choice';
+    }
+  },
+});
+
+console.log('You chose:', choice);
 ```
 
 ### banner
