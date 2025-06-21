@@ -26,17 +26,6 @@ npm install inquirer-select-with-banner
 ## Usage
 
 ```js
-import { select } from 'inquirer-select-with-banner';
-
-const answer = await select({
-  message: 'Choose your weapon',
-  choices: [
-    { value: 'axe', name: 'Battle Axe' },
-    { value: 'sword', name: 'Sword' },
-    { value: 'bow', name: 'Bow and Arrow' }
-  ],
-  banner: (choice) => `Selected: ${choice.name}` // <- Controls the banner. return `string` to display, `undefined` or '' to clear, `null` to preserve the previous banner 
-});
 import { select } from './index.js';
 
 const choice = await select<string>({
