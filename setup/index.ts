@@ -24,7 +24,7 @@ const repoUrl = git.getConfig('remote.origin.url');
 // fetch the remote
 console.log({ authorEmail, authorName, packageName, repoUrl });
 
-const { LICENSE, CONTRIBUTING, ...variables } = {
+const { LICENSE, CONTRIBUTING, KEYWORDS, ...variables } = {
   PACKAGE_NAME: await input({
     message: 'Package Name',
     required: true,
@@ -47,12 +47,7 @@ const { LICENSE, CONTRIBUTING, ...variables } = {
   }),
   KEYWORDS: await input({
     message: 'Keywords (Comma separated)',
-  }).then(keywords =>
-    keywords
-      .split(',')
-      .map(k => `"${k.trim()}"`)
-      .join(', '),
-  ),
+  }).then(keywords => keywords.split(',').map(k => k.trim())),
   LICENSE: await select({
     message: 'Add a license?',
     choices: [
@@ -85,7 +80,29 @@ const templateFile = async (fileName: string) => {
 };
 
 // Template the package.json
-await templateFile('package.json');
+const packageJSON = await readFile('package.json', 'utf8').catch(err => {
+  console.log(err);
+  return null;
+});
+
+if (packageJSON) {
+  const packageJson = JSON.parse(packageJSON);
+  packageJson.name = templateVariables.PACKAGE_NAME;
+  packageJson.description = templateVariables.PACKAGE_DESCRIPTION;
+
+  const author: { name?: string; email?: string } = {};
+  if (templateVariables.AUTHOR_NAME) author.name = templateVariables.AUTHOR_NAME;
+  if (templateVariables.AUTHOR_EMAIL) author.email = templateVariables.AUTHOR_EMAIL;
+
+  packageJson.author = author;
+  packageJson.author.keywords = KEYWORDS;
+
+  packageJson.name = templateVariables.PACKAGE_NAME;
+  packageJson.homepage = templateVariables.REPO_URL;
+  packageJson.repository.url = templateVariables.REPO_URL;
+
+  await writeFile('package.json', JSON.stringify(packageJson, null, 2));
+}
 
 // Add a license if the user has specified one
 if (LICENSE !== NO_LICENSE) {

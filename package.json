@@ -18,7 +18,7 @@
     "type": "git",
     "url": "{{REPO_URL}}"
   },
-  "keywords": [],
+  "keywords": "{{KEYWORDS}}",
   "devDependencies": {
     "@biomejs/biome": "^2.0.4",
     "@types/chai": "^5.2.2",
