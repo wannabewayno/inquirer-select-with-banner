@@ -12,22 +12,25 @@ const NO_LICENSE = 'NO_LICENSE';
 const rootDir = process.cwd();
 const git = simpleGit({ baseDir: rootDir });
 
+function gitRemoteToHttps(gitUrl: string): string {
+  return gitUrl.replace(/^git@([^:]+):/, 'https://$1/').replace(/\.git$/, '');
+}
+
 async function main() {
   console.log('🚀 Setting things up...\n');
 
   // Get defaults from git and/or the environment.
-  // github might have a description
   const packageName = path.basename(rootDir);
-  const authorName = git.getConfig('user.name');
-  const authorEmail = git.getConfig('user.email');
-  const repoUrl = git.getConfig('remote.origin.url');
+  const authorName = await git.getConfig('user.name').then(({ value }) => value);
+  const authorEmail = await git.getConfig('user.email').then(({ value }) => value);
+  const repoUrl = await git.getConfig('remote.origin.url').then(({ value }) => value);
 
-  // fetch the remote
-  console.log({ authorEmail, authorName, packageName, repoUrl });
+  const httpsUrl = repoUrl ? gitRemoteToHttps(repoUrl) : undefined;
 
   const { LICENSE, CONTRIBUTING, KEYWORDS, ...variables } = {
     PACKAGE_NAME: await input({
       message: 'Package Name',
+      default: packageName ?? undefined,
       required: true,
     }),
     PACKAGE_DESCRIPTION: await input({
@@ -35,16 +38,19 @@ async function main() {
     }),
     AUTHOR_NAME: await input({
       message: 'Author Name (full)',
-      default: '',
+      default: authorName ?? undefined,
       required: true,
     }),
     AUTHOR_EMAIL: await input({
       message: 'Author email',
-      default: '',
+      default: authorEmail ?? undefined,
       validate: (value: string) => validator.isEmail(value) || 'Please enter a valid email address.',
     }),
     REPO_URL: await input({
       message: 'Repository url',
+      default: httpsUrl,
+      validate: (value: string) => validator.isURL(value) || 'Please enter a valid URL.',
+      required: true,
     }),
     KEYWORDS: await input({
       message: 'Keywords (Comma separated)',
@@ -65,7 +71,10 @@ async function main() {
     }),
   };
 
-  const templateVariables = { ...variables, YEAR: new Date().getFullYear().toString() };
+  const license = licenses[LICENSE as keyof typeof licenses];
+  const licenseName = license ? license.name : 'No License';
+
+  const templateVariables = { ...variables, YEAR: new Date().getFullYear().toString(), LICENSE: licenseName };
 
   const templateFile = async (fileName: string) => {
     const packageJSON = await readFile(fileName, 'utf8').catch(err => {
@@ -94,12 +103,11 @@ async function main() {
     const author: { name?: string; email?: string } = {};
     if (templateVariables.AUTHOR_NAME) author.name = templateVariables.AUTHOR_NAME;
     if (templateVariables.AUTHOR_EMAIL) author.email = templateVariables.AUTHOR_EMAIL;
-
     packageJson.author = author;
-    packageJson.author.keywords = KEYWORDS;
 
-    packageJson.name = templateVariables.PACKAGE_NAME;
-    packageJson.homepage = templateVariables.REPO_URL;
+    packageJson.keywords = KEYWORDS;
+
+    packageJson.homepage = `${templateVariables.REPO_URL}#readme`;
     packageJson.repository.url = templateVariables.REPO_URL;
 
     await writeFile('package.json', JSON.stringify(packageJson, null, 2));

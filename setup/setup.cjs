@@ -25567,16 +25567,20 @@ function template(text, replacements2) {
 var NO_LICENSE = "NO_LICENSE";
 var rootDir = process.cwd();
 var git = simpleGit({ baseDir: rootDir });
+function gitRemoteToHttps(gitUrl) {
+  return gitUrl.replace(/^git@([^:]+):/, "https://$1/").replace(/\.git$/, "");
+}
 async function main() {
   console.log("\u{1F680} Setting things up...\n");
   const packageName = import_node_path.default.basename(rootDir);
-  const authorName = git.getConfig("user.name");
-  const authorEmail = git.getConfig("user.email");
-  const repoUrl = git.getConfig("remote.origin.url");
-  console.log({ authorEmail, authorName, packageName, repoUrl });
+  const authorName = await git.getConfig("user.name").then(({ value }) => value);
+  const authorEmail = await git.getConfig("user.email").then(({ value }) => value);
+  const repoUrl = await git.getConfig("remote.origin.url").then(({ value }) => value);
+  const httpsUrl = repoUrl ? gitRemoteToHttps(repoUrl) : void 0;
   const { LICENSE, CONTRIBUTING, KEYWORDS, ...variables } = {
     PACKAGE_NAME: await esm_default5({
       message: "Package Name",
+      default: packageName ?? void 0,
       required: true
     }),
     PACKAGE_DESCRIPTION: await esm_default5({
@@ -25584,16 +25588,19 @@ async function main() {
     }),
     AUTHOR_NAME: await esm_default5({
       message: "Author Name (full)",
-      default: "",
+      default: authorName ?? void 0,
       required: true
     }),
     AUTHOR_EMAIL: await esm_default5({
       message: "Author email",
-      default: "",
+      default: authorEmail ?? void 0,
       validate: (value) => import_validator.default.isEmail(value) || "Please enter a valid email address."
     }),
     REPO_URL: await esm_default5({
-      message: "Repository url"
+      message: "Repository url",
+      default: httpsUrl,
+      validate: (value) => import_validator.default.isURL(value) || "Please enter a valid URL.",
+      required: true
     }),
     KEYWORDS: await esm_default5({
       message: "Keywords (Comma separated)"
@@ -25613,7 +25620,9 @@ async function main() {
       default: true
     })
   };
-  const templateVariables = { ...variables, YEAR: (/* @__PURE__ */ new Date()).getFullYear().toString() };
+  const license = licenses_default[LICENSE];
+  const licenseName = license ? license.name : "No License";
+  const templateVariables = { ...variables, YEAR: (/* @__PURE__ */ new Date()).getFullYear().toString(), LICENSE: licenseName };
   const templateFile = async (fileName) => {
     const packageJSON2 = await (0, import_promises.readFile)(fileName, "utf8").catch((err) => {
       console.log(err);
@@ -25638,7 +25647,7 @@ async function main() {
     packageJson.author = author;
     packageJson.author.keywords = KEYWORDS;
     packageJson.name = templateVariables.PACKAGE_NAME;
-    packageJson.homepage = templateVariables.REPO_URL;
+    packageJson.homepage = `${templateVariables.REPO_URL}#readme`;
     packageJson.repository.url = templateVariables.REPO_URL;
     await (0, import_promises.writeFile)("package.json", JSON.stringify(packageJson, null, 2));
   }
