@@ -110,6 +110,8 @@ async function main() {
     packageJson.homepage = `${templateVariables.REPO_URL}#readme`;
     packageJson.repository.url = templateVariables.REPO_URL;
 
+    Reflect.deleteProperty(packageJson.scripts, 'template:setup');
+
     await writeFile('package.json', JSON.stringify(packageJson, null, 2));
   }
 
