@@ -158,7 +158,7 @@ async function main() {
   console.log('3. Configure branch protection rules for ');
 
   // Delete the setup files. we no longer need them
-  // await unlink('./setup/*');
+  await unlink('./setup/*');
 }
 
 main();

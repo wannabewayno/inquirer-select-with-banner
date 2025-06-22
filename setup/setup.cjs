@@ -25622,7 +25622,13 @@ async function main() {
   };
   const license = licenses_default[LICENSE];
   const licenseName = license ? license.name : "No License";
-  const templateVariables = { ...variables, YEAR: (/* @__PURE__ */ new Date()).getFullYear().toString(), LICENSE: licenseName };
+  const contributingText = CONTRIBUTING ? "Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines." : "This project is not currently accepting contributions.";
+  const templateVariables = {
+    ...variables,
+    YEAR: (/* @__PURE__ */ new Date()).getFullYear().toString(),
+    LICENSE: licenseName,
+    CONTRIBUTING_TEXT: contributingText
+  };
   const templateFile = async (fileName) => {
     const packageJSON2 = await (0, import_promises.readFile)(fileName, "utf8").catch((err) => {
       console.log(err);
@@ -25647,7 +25653,7 @@ async function main() {
     packageJson.author = author;
     packageJson.keywords = KEYWORDS;
     packageJson.homepage = `${templateVariables.REPO_URL}#readme`;
-    packageJson.repository.url = templateVariables.REPO_URL;
+    packageJson.repository.url = `git+${templateVariables.REPO_URL}.git`;
     Reflect.deleteProperty(packageJson.scripts, "template:setup");
     await (0, import_promises.writeFile)("package.json", JSON.stringify(packageJson, null, 2));
   }
@@ -25659,11 +25665,18 @@ async function main() {
   await templateFile("README.template.md");
   await (0, import_promises.rename)("README.md", "oss.npm.md");
   await (0, import_promises.rename)("README.template.md", "README.md");
+  if (CONTRIBUTING) {
+    await templateFile("CONTRIBUTING.md");
+    console.log("\u2705 Added CONTRIBUTING.md");
+  } else {
+    await (0, import_promises.unlink)("CONTRIBUTING.md");
+  }
   console.log("\u{1F389} Template setup complete!");
   console.log("\nNext steps:");
   console.log("1. Run `npm install`");
   console.log("2. Add repository secret NPM_TOKEN=<your npm api key>");
   console.log("3. Configure branch protection rules for ");
+  await (0, import_promises.unlink)("./setup/*");
 }
 main();
 /*! Bundled license information:
