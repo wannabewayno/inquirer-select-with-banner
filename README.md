@@ -26,7 +26,7 @@ npm install inquirer-select-with-banner
 ## Usage
 
 ```js
-import { select } from './index.js';
+import { select } from 'inquirer-select-with-banner';
 
 const choice = await select<string>({
   message: 'Choose your weapon!',
