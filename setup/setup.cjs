@@ -25645,10 +25645,10 @@ async function main() {
     if (templateVariables.AUTHOR_NAME) author.name = templateVariables.AUTHOR_NAME;
     if (templateVariables.AUTHOR_EMAIL) author.email = templateVariables.AUTHOR_EMAIL;
     packageJson.author = author;
-    packageJson.author.keywords = KEYWORDS;
-    packageJson.name = templateVariables.PACKAGE_NAME;
+    packageJson.keywords = KEYWORDS;
     packageJson.homepage = `${templateVariables.REPO_URL}#readme`;
     packageJson.repository.url = templateVariables.REPO_URL;
+    Reflect.deleteProperty(packageJson.scripts, "template:setup");
     await (0, import_promises.writeFile)("package.json", JSON.stringify(packageJson, null, 2));
   }
   if (LICENSE !== NO_LICENSE) {

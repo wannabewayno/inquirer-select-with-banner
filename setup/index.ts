@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { input, confirm, select, Separator } from '@inquirer/prompts';
-import { writeFile, readFile, rename } from 'node:fs/promises';
+import { writeFile, readFile, rename, unlink } from 'node:fs/promises';
 import licenses from './licenses/index.js';
 import path from 'node:path';
 import { simpleGit } from 'simple-git';
@@ -73,8 +73,16 @@ async function main() {
 
   const license = licenses[LICENSE as keyof typeof licenses];
   const licenseName = license ? license.name : 'No License';
+  const contributingText = CONTRIBUTING
+    ? 'Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.'
+    : 'This project is not currently accepting contributions.';
 
-  const templateVariables = { ...variables, YEAR: new Date().getFullYear().toString(), LICENSE: licenseName };
+  const templateVariables = {
+    ...variables,
+    YEAR: new Date().getFullYear().toString(),
+    LICENSE: licenseName,
+    CONTRIBUTING_TEXT: contributingText,
+  };
 
   const templateFile = async (fileName: string) => {
     const packageJSON = await readFile(fileName, 'utf8').catch(err => {
@@ -108,7 +116,7 @@ async function main() {
     packageJson.keywords = KEYWORDS;
 
     packageJson.homepage = `${templateVariables.REPO_URL}#readme`;
-    packageJson.repository.url = templateVariables.REPO_URL;
+    packageJson.repository.url = `git+${templateVariables.REPO_URL}.git`;
 
     Reflect.deleteProperty(packageJson.scripts, 'template:setup');
 
@@ -136,9 +144,12 @@ async function main() {
   await rename('README.template.md', 'README.md');
 
   // Add a contributing file if the user has specified one
-  // if (CONTRIBUTING) {
-  //   await templateFile('CONTRIBUTING.template.md');
-  // }
+  if (CONTRIBUTING) {
+    await templateFile('CONTRIBUTING.md');
+    console.log('✅ Added CONTRIBUTING.md');
+  } else {
+    await unlink('CONTRIBUTING.md');
+  }
 
   console.log('🎉 Template setup complete!');
   console.log('\nNext steps:');

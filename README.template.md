@@ -26,9 +26,9 @@ import { hello } from '{{PACKAGE_NAME}}';
 console.log(hello('World')); // Hello, World!
 ```
 
-## Configuration
-
 ## Contributing
+
+{{CONTRIBUTING_TEXT}}
 
 ## License
 
