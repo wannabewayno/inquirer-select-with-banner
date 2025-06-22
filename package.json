@@ -45,7 +45,7 @@
     "test": "npx mocha test",
     "test:parallel": "npx mocha test --parallel",
     "build": "tshy",
-    "template:setup": "node setup/setup.js"
+    "template:setup": "node setup/setup.cjs"
   },
   "tshy": {
     "exclude": [
