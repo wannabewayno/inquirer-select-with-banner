@@ -25676,7 +25676,7 @@ async function main() {
   console.log("1. Run `npm install`");
   console.log("2. Add repository secret NPM_TOKEN=<your npm api key>");
   console.log("3. Configure branch protection rules for ");
-  await (0, import_promises.unlink)("./setup/*");
+  await (0, import_promises.rm)("./setup", { recursive: true, force: true });
 }
 main();
 /*! Bundled license information:

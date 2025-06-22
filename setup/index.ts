@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { input, confirm, select, Separator } from '@inquirer/prompts';
-import { writeFile, readFile, rename, unlink } from 'node:fs/promises';
+import { writeFile, readFile, rename, unlink, rm } from 'node:fs/promises';
 import licenses from './licenses/index.js';
 import path from 'node:path';
 import { simpleGit } from 'simple-git';
@@ -158,7 +158,7 @@ async function main() {
   console.log('3. Configure branch protection rules for ');
 
   // Delete the setup files. we no longer need them
-  await unlink('./setup/*');
+  await rm('./setup', { recursive: true, force: true });
 }
 
 main();
