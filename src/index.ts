@@ -1,2 +1,3 @@
-export * from './select.js';
-export { default as select } from './select.js';
+export function helloWorld() {
+  console.log('Hello World!');
+}

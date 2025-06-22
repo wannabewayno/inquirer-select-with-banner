@@ -1,74 +1,45 @@
-<div align="center">
-  <h1>inquirer-select-with-banner</h1>
-  <p>
-    <a alt="NPM Version"><img src="https://img.shields.io/npm/v/inquirer-select-with-banner?style=social&logo=npm" /></a>
-    <a alt="NPM Downloads"><img src="https://img.shields.io/npm/dw/inquirer-select-with-banner?style=social&logo=npm" /></a>
-    <a alt="NPM Last Update"><img src="https://img.shields.io/npm/last-update/inquirer-select-with-banner?style=social&logo=npm" /></a>
-  </p>
-    <p>
-    <a alt="Libraries.io dependency status for GitHub repo"><img src="https://img.shields.io/librariesio/github/wannabewayno/inquirer-select-with-banner?style=plastic" /></a>
-    <a alt="GitHub Issues or Pull Requests"><img src="https://img.shields.io/github/issues/wannabewayno/inquirer-select-with-banner?style=plastic&logo=github" /></a>
-  </p>
-</div>
+# Open Source Software Typescript + NPM
 
-An [Inquirer.js](https://github.com/SBoudrias/Inquirer.js) select prompt that displays a dynamic banner above the choices, updating as the user navigates through options.
+This template provides a complete TypeScript package structure with modern tooling for publishing to npm.
 
-![Screen recording](./screen-recording.gif)
+## Features Included
 
-Inspired by [inquirer-select-with-state](https://github.com/patik/inquirer-select-with-state), the core difference being that the banner function is given what the user is currently hovering on, allowing for context aware information to be shown.
+- ✅ TypeScript with dual ESM/CommonJS output (tshy)
+- ✅ Biome for formatting and linting
+- ✅ Mocha + Chai testing setup
+- ✅ Husky + lint-staged for git hooks
+- ✅ Proper package.json exports
+- ✅ GitHub Actions ready structure
 
-## Installation
+## Quick Setup
 
+1. **Clone/Copy this template**
+2. **Run the setup script**: `npm run template:setup`
+3. **Install dependencies**: `npm install`
+4. **Provide NPM Token**: Add an NPM auth token a the repository secret `NPM_TOKEN` this enables the CD runner to publish packages.
+5. **Configure Branch Protection Rules**: Ensure `main/master` is protected and can only accept code via pull requests. 
+6. **Start coding**: Replace src/ content with your package logic
+
+
+## Available Scripts
+
+- `npm run build` - Build the package
+- `npm test` - Run tests
+- `npm run lint` - Lint code
+- `npm run format` - Format code
+- `npm run check` - Type check
+
+## Building with tshy
+[tshy](https://github.com/isaacs/tshy) is the TypeScript HYbridizer build system that uses tsc under the hood. It's configured out of the box to proivide ESM and CommonJS build targets for your package.
+
+It mostly just works, but I wanted to provide some context around the 'exports' property in the `package.json`. By default it is 
+
+## Publishing
+
+Publishing happens automatically via the workflow file `.github/workflows/npm-publish.yaml`.
+Simply use npm to semantically update the version:
 ```bash
-npm install inquirer-select-with-banner
+npm version <patch|minor|major>
 ```
-
-## Usage
-
-```js
-import { select } from './index.js';
-
-const choice = await select<string>({
-  message: 'Choose your weapon!',
-  choices: [
-    'Battle Axe',
-    'Sword',
-    'Bow and Arrow',
-    'Spear',
-    'Shield',
-    'Hammer',
-    'Mace',
-    'Dagger',
-    'Pencil',
-    'Flail',
-    'Scimitar',
-    'Crossbow',
-    'Staff',
-  ],
-  // Thiscontrols the banner.
-  // return `string` to display a banner
-  // `undefined` or '' to clear the banner
-  // `null` to preserve the previous banner 
-  banner: choice => {
-    switch (choice.value) {
-      case 'Battle Axe':
-      case 'Mace':
-      case 'Flail': return 'Heavy';
-      case 'Staff': return 'You shall not pass!';
-      case 'Sword':
-      case 'Dagger':
-      case 'Scimitar': return 'Pointy';
-      case 'Bow and Arrow':
-      case 'Crossbow': return 'Ahh, from afar!';
-      case 'Pencil': return 'Hello John Wick';
-      default: return 'Nice Choice';
-    }
-  },
-});
-
-console.log('You chose:', choice);
-```
-
-### banner
-The return value of the banner function should be a string that controls what the banner displays.
-If you want the banner to not update, you can pass `null` to have it reuse the previous selection's banner.
+A new 'bump' commit will be added to the repository tagged with a semver tag `v<major>.<minor>.<patch>)`.
+The github action's workflow listens for semver tags and will test and publish the package to npm on your behalf.
