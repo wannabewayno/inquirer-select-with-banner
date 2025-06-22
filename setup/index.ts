@@ -12,128 +12,132 @@ const NO_LICENSE = 'NO_LICENSE';
 const rootDir = process.cwd();
 const git = simpleGit({ baseDir: rootDir });
 
-console.log('🚀 Setting things up...\n');
+async function main() {
+  console.log('🚀 Setting things up...\n');
 
-// Get defaults from git and/or the environment.
-// github might have a description
-const packageName = path.basename(rootDir);
-const authorName = git.getConfig('user.name');
-const authorEmail = git.getConfig('user.email');
-const repoUrl = git.getConfig('remote.origin.url');
+  // Get defaults from git and/or the environment.
+  // github might have a description
+  const packageName = path.basename(rootDir);
+  const authorName = git.getConfig('user.name');
+  const authorEmail = git.getConfig('user.email');
+  const repoUrl = git.getConfig('remote.origin.url');
 
-// fetch the remote
-console.log({ authorEmail, authorName, packageName, repoUrl });
+  // fetch the remote
+  console.log({ authorEmail, authorName, packageName, repoUrl });
 
-const { LICENSE, CONTRIBUTING, KEYWORDS, ...variables } = {
-  PACKAGE_NAME: await input({
-    message: 'Package Name',
-    required: true,
-  }),
-  PACKAGE_DESCRIPTION: await input({
-    message: 'Short Description',
-  }),
-  AUTHOR_NAME: await input({
-    message: 'Author Name (full)',
-    default: '',
-    required: true,
-  }),
-  AUTHOR_EMAIL: await input({
-    message: 'Author email',
-    default: '',
-    validate: (value: string) => validator.isEmail(value) || 'Please enter a valid email address.',
-  }),
-  REPO_URL: await input({
-    message: 'Repository url',
-  }),
-  KEYWORDS: await input({
-    message: 'Keywords (Comma separated)',
-  }).then(keywords => keywords.split(',').map(k => k.trim())),
-  LICENSE: await select({
-    message: 'Add a license?',
-    choices: [
-      { name: 'No License', value: NO_LICENSE },
-      new Separator(),
-      ...Object.entries(licenses).map(([key, value]) => {
-        return { name: value.name, value: key };
-      }),
-    ],
-  }),
-  CONTRIBUTING: await confirm({
-    message: 'Add a contributing file?',
-    default: true,
-  }),
-};
+  const { LICENSE, CONTRIBUTING, KEYWORDS, ...variables } = {
+    PACKAGE_NAME: await input({
+      message: 'Package Name',
+      required: true,
+    }),
+    PACKAGE_DESCRIPTION: await input({
+      message: 'Short Description',
+    }),
+    AUTHOR_NAME: await input({
+      message: 'Author Name (full)',
+      default: '',
+      required: true,
+    }),
+    AUTHOR_EMAIL: await input({
+      message: 'Author email',
+      default: '',
+      validate: (value: string) => validator.isEmail(value) || 'Please enter a valid email address.',
+    }),
+    REPO_URL: await input({
+      message: 'Repository url',
+    }),
+    KEYWORDS: await input({
+      message: 'Keywords (Comma separated)',
+    }).then(keywords => keywords.split(',').map(k => k.trim())),
+    LICENSE: await select({
+      message: 'Add a license?',
+      choices: [
+        { name: 'No License', value: NO_LICENSE },
+        new Separator(),
+        ...Object.entries(licenses).map(([key, value]) => {
+          return { name: value.name, value: key };
+        }),
+      ],
+    }),
+    CONTRIBUTING: await confirm({
+      message: 'Add a contributing file?',
+      default: true,
+    }),
+  };
 
-const templateVariables = { ...variables, YEAR: new Date().getFullYear().toString() };
+  const templateVariables = { ...variables, YEAR: new Date().getFullYear().toString() };
 
-const templateFile = async (fileName: string) => {
-  const packageJSON = await readFile(fileName, 'utf8').catch(err => {
+  const templateFile = async (fileName: string) => {
+    const packageJSON = await readFile(fileName, 'utf8').catch(err => {
+      console.log(err);
+      return null;
+    });
+
+    if (packageJSON === null) return;
+
+    const templatedPackageJSON = template(packageJSON, templateVariables);
+    await writeFile(fileName, templatedPackageJSON);
+    console.log(`✅ Updated ${fileName}`);
+  };
+
+  // Template the package.json
+  const packageJSON = await readFile('package.json', 'utf8').catch(err => {
     console.log(err);
     return null;
   });
 
-  if (packageJSON === null) return;
+  if (packageJSON) {
+    const packageJson = JSON.parse(packageJSON);
+    packageJson.name = templateVariables.PACKAGE_NAME;
+    packageJson.description = templateVariables.PACKAGE_DESCRIPTION;
 
-  const templatedPackageJSON = template(packageJSON, templateVariables);
-  await writeFile(fileName, templatedPackageJSON);
-  console.log(`✅ Updated ${fileName}`);
-};
+    const author: { name?: string; email?: string } = {};
+    if (templateVariables.AUTHOR_NAME) author.name = templateVariables.AUTHOR_NAME;
+    if (templateVariables.AUTHOR_EMAIL) author.email = templateVariables.AUTHOR_EMAIL;
 
-// Template the package.json
-const packageJSON = await readFile('package.json', 'utf8').catch(err => {
-  console.log(err);
-  return null;
-});
+    packageJson.author = author;
+    packageJson.author.keywords = KEYWORDS;
 
-if (packageJSON) {
-  const packageJson = JSON.parse(packageJSON);
-  packageJson.name = templateVariables.PACKAGE_NAME;
-  packageJson.description = templateVariables.PACKAGE_DESCRIPTION;
+    packageJson.name = templateVariables.PACKAGE_NAME;
+    packageJson.homepage = templateVariables.REPO_URL;
+    packageJson.repository.url = templateVariables.REPO_URL;
 
-  const author: { name?: string; email?: string } = {};
-  if (templateVariables.AUTHOR_NAME) author.name = templateVariables.AUTHOR_NAME;
-  if (templateVariables.AUTHOR_EMAIL) author.email = templateVariables.AUTHOR_EMAIL;
+    await writeFile('package.json', JSON.stringify(packageJson, null, 2));
+  }
 
-  packageJson.author = author;
-  packageJson.author.keywords = KEYWORDS;
+  // Add a license if the user has specified one
+  if (LICENSE !== NO_LICENSE) {
+    // Template the license
+    const templatedLicense = template(licenses[LICENSE as keyof typeof licenses].content, templateVariables);
 
-  packageJson.name = templateVariables.PACKAGE_NAME;
-  packageJson.homepage = templateVariables.REPO_URL;
-  packageJson.repository.url = templateVariables.REPO_URL;
+    // Write the license to LICENSE
+    await writeFile('LICENSE', templatedLicense, 'utf-8');
 
-  await writeFile('package.json', JSON.stringify(packageJson, null, 2));
+    console.log(`✅ Add ${LICENSE} License`);
+  }
+
+  // Template the README.md
+  await templateFile('README.template.md');
+
+  // Move the current README that contains 'how to use this template' to oss.npm.md for later reference
+  await rename('README.md', 'oss.npm.md');
+
+  // Move README.template.md to README.md
+  await rename('README.template.md', 'README.md');
+
+  // Add a contributing file if the user has specified one
+  // if (CONTRIBUTING) {
+  //   await templateFile('CONTRIBUTING.template.md');
+  // }
+
+  console.log('🎉 Template setup complete!');
+  console.log('\nNext steps:');
+  console.log('1. Run `npm install`');
+  console.log('2. Add repository secret NPM_TOKEN=<your npm api key>');
+  console.log('3. Configure branch protection rules for ');
+
+  // Delete the setup files. we no longer need them
+  // await unlink('./setup/*');
 }
 
-// Add a license if the user has specified one
-if (LICENSE !== NO_LICENSE) {
-  // Template the license
-  const templatedLicense = template(licenses[LICENSE as keyof typeof licenses].content, templateVariables);
-
-  // Write the license to LICENSE
-  await writeFile('LICENSE', templatedLicense, 'utf-8');
-
-  console.log(`✅ Add ${LICENSE} License`);
-}
-
-// Template the README.md
-await templateFile('README.template.md');
-
-// Move the current README that contains 'how to use this template' to oss.npm.md for later reference
-await rename('README.md', 'oss.npm.md');
-
-// Move README.template.md to README.md
-await rename('README.template.md', 'README.md');
-
-// Add a contributing file if the user has specified one
-// if (CONTRIBUTING) {
-//   await templateFile('CONTRIBUTING.template.md');
-// }
-
-console.log('🎉 Template setup complete!');
-console.log('\nNext steps:');
-console.log('1. Run `npm install`');
-console.log('2. Add repository secret NPM_TOKEN=<your npm api key>');
-console.log('3. Configure branch protection rules for ');
-
-// Delete the setup files. we no longer need them
-// await unlink('./setup/*');
+main();
